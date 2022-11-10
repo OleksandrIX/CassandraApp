@@ -1,11 +1,15 @@
+import tkinter
+from tkinter.ttk import *
 import customtkinter
 import os
 from threading import Thread
 from cassandra_class import Cassandra
+from tkinter import *
+
 
 class CTkApp:
     def __init__(self, title):
-        self.app = customtkinter.CTk()
+        self.app = customtkinter.CTk(fg_color='#ffffff')
         self.app.title(title)
         self.center_window()
         self.verify_button = customtkinter.CTkButton(self.app)
@@ -14,6 +18,12 @@ class CTkApp:
         self.entry_host = customtkinter.CTkEntry(self.app)
         self.progress_bar = customtkinter.CTkProgressBar(self.app)
         self.lable_cassandra_info = customtkinter.CTkLabel(self.app)
+        self.list_box = Listbox(self.app)
+        self.table_cassandra = Treeview(self.app)
+        self.scrollbarX = Scrollbar(self.app, orient=tkinter.HORIZONTAL, command=self.table_cassandra.xview)
+        self.button_back = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
+            file='/home/pishexod/PycharmProjects/CassandraApp/back.png'), fg_color='#ffffff', hover_color='#ffffff',
+                                                   height=15, width=15)
         self.command_install_jdk = 'sh script_install_jdk.sh'
         self.command_install_cassandra = 'sh script_install_cassandra.sh'
         self.keyspace = ''
@@ -34,6 +44,7 @@ class CTkApp:
 
     def verify_cassandra(self):
         self.verify_label.configure(text='Перевірити чи встановленна cassandra')
+
         self.verify_label.place(relx=0.5, rely=0.4, anchor=customtkinter.CENTER)
         self.verify_button.configure(text='Перевірити', command=self.enter_password, width=155)
         self.verify_button.place(relx=0.5, rely=0.51, anchor=customtkinter.CENTER)
@@ -77,7 +88,7 @@ class CTkApp:
             self.verify_label.configure(text='Cassandra встановлена')
             self.verify_button.configure(text='Запустити', command=self.enter_host_cluster)
             self.verify_button.place(relx=0.5, rely=0.51, anchor=customtkinter.CENTER)
-        except():
+        except:
             self.progress_bar.stop()
             self.progress_bar.place_forget()
             self.verify_label.configure(text='Cassandra не встановлена')
@@ -95,7 +106,73 @@ class CTkApp:
         try:
             self.cassandra_cluster.connect_cassandra(self.entry_host.get())
             self.lable_cassandra_info.configure(text=f'Host: {self.entry_host.get()}')
-            self.lable_cassandra_info.place(relx=0.5, rely=0.03, anchor=customtkinter.CENTER)
-        except():
+            self.lable_cassandra_info.pack()
+            keyspaces = self.cassandra_cluster.get_all_keyspace()
+            self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0)
+            self.list_box.pack(fill=BOTH)
+            self.list_box.bind('<Double-1>', self.select_keyspace)
+        except:
             self.lable_cassandra_info.configure(text='Такого хоста не існує')
-            self.lable_cassandra_info.place(relx=0.5, rely=0.01, anchor=customtkinter.CENTER)
+            self.lable_cassandra_info.pack()
+
+    def select_keyspace(self, event):
+        self.button_back.configure(command=self.back_to_list_keyspace)
+        self.button_back.place(relx=0.01, rely=0.01)
+        selection = event.widget.curselection()
+        if selection:
+            index = selection[0]
+            self.keyspace = event.widget.get(index)
+            tables = self.cassandra_cluster.get_all_tables_of_keyspace(self.keyspace)
+            self.list_box.configure(listvariable=Variable(value=tables))
+            self.list_box.bind('<Double-1>', self.select_table_of_keyspace)
+            self.list_box.update()
+            self.lable_cassandra_info.configure(text=f'{self.lable_cassandra_info.text} \n Keyspace: {self.keyspace}')
+            self.lable_cassandra_info.update()
+
+    def select_table_of_keyspace(self, event):
+        self.button_back.configure(command=self.back_to_list_table)
+        self.button_back.update()
+        selection = event.widget.curselection()
+        if selection:
+            index = selection[0]
+            self.table = event.widget.get(index)
+            self.lable_cassandra_info.configure(text=f'{self.lable_cassandra_info.text} \n Table: {self.table}')
+            self.lable_cassandra_info.update()
+            self.list_box.pack_forget()
+            self.draw_table()
+
+    def draw_table(self):
+        self.scrollbarY.pack_forget()
+        self.scrollbarX.pack_forget()
+        self.table_cassandra.delete(*self.table_cassandra.get_children())
+        columns = self.cassandra_cluster.get_all_column_of_table(self.keyspace, self.table)
+        self.table_cassandra.configure(columns=columns, show='headings', xscroll=self.scrollbarX.set)
+        for i in range(len(columns)):
+            self.table_cassandra.heading(columns[i], text=columns[i])
+        info_of_columns = self.cassandra_cluster.get_info_of_column(self.keyspace, self.table)
+        for i in range(len(info_of_columns)):
+            self.table_cassandra.insert('', tkinter.END, values=info_of_columns[i])
+        self.table_cassandra.pack(fill=BOTH)
+        self.scrollbarX.pack(side=BOTTOM, fill=X)
+
+    def back_to_list_keyspace(self):
+        self.button_back.place_forget()
+        self.lable_cassandra_info.configure(text=f'Host: {self.entry_host.get()}')
+        self.lable_cassandra_info.pack()
+        keyspaces = self.cassandra_cluster.get_all_keyspace()
+        self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0)
+        self.list_box.pack(fill=BOTH)
+        self.list_box.bind('<Double-1>', self.select_keyspace)
+
+    def back_to_list_table(self):
+        self.button_back.configure(command=self.back_to_list_keyspace)
+        self.button_back.update()
+        self.lable_cassandra_info.configure(text='')
+        self.lable_cassandra_info.configure(text=f'Host: {self.entry_host} \n Keyspace: {self.keyspace}')
+        self.lable_cassandra_info.update()
+        self.table_cassandra.pack_forget()
+        tables = self.cassandra_cluster.get_all_tables_of_keyspace(self.keyspace)
+        self.list_box.configure(listvariable=Variable(value=tables))
+        self.list_box.bind('<Double-1>', self.select_table_of_keyspace)
+        self.list_box.pack(fill=BOTH)
+        self.list_box.update()
