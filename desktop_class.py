@@ -20,7 +20,6 @@ class CTkApp:
         self.lable_cassandra_info = customtkinter.CTkLabel(self.app)
         self.list_box = Listbox(self.app)
         self.table_cassandra = Treeview(self.app)
-        self.scrollbarX = Scrollbar(self.app, orient=tkinter.HORIZONTAL, command=self.table_cassandra.xview)
         self.button_back = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
             file='/home/pishexod/PycharmProjects/CassandraApp/back.png'), fg_color='#ffffff', hover_color='#ffffff',
                                                    height=15, width=15)
@@ -108,7 +107,7 @@ class CTkApp:
             self.lable_cassandra_info.configure(text=f'Host: {self.entry_host.get()}')
             self.lable_cassandra_info.pack()
             keyspaces = self.cassandra_cluster.get_all_keyspace()
-            self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0)
+            self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0, height=500)
             self.list_box.pack(fill=BOTH)
             self.list_box.bind('<Double-1>', self.select_keyspace)
         except:
@@ -142,18 +141,15 @@ class CTkApp:
             self.draw_table()
 
     def draw_table(self):
-        self.scrollbarY.pack_forget()
-        self.scrollbarX.pack_forget()
         self.table_cassandra.delete(*self.table_cassandra.get_children())
         columns = self.cassandra_cluster.get_all_column_of_table(self.keyspace, self.table)
-        self.table_cassandra.configure(columns=columns, show='headings', xscroll=self.scrollbarX.set)
+        self.table_cassandra.configure(columns=columns, show='headings', height=500)
         for i in range(len(columns)):
             self.table_cassandra.heading(columns[i], text=columns[i])
         info_of_columns = self.cassandra_cluster.get_info_of_column(self.keyspace, self.table)
         for i in range(len(info_of_columns)):
             self.table_cassandra.insert('', tkinter.END, values=info_of_columns[i])
         self.table_cassandra.pack(fill=BOTH)
-        self.scrollbarX.pack(side=BOTTOM, fill=X)
 
     def back_to_list_keyspace(self):
         self.button_back.place_forget()
