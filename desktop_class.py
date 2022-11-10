@@ -23,6 +23,10 @@ class CTkApp:
         self.button_back = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
             file='/home/pishexod/PycharmProjects/CassandraApp/back.png'), fg_color='#ffffff', hover_color='#ffffff',
                                                    height=15, width=15)
+        self.button_add = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
+            file='/home/pishexod/PycharmProjects/CassandraApp/add.png'), fg_color='#ffffff', hover_color='#ffffff',
+                                                  height=15, width=15)
+
         self.command_install_jdk = 'sh script_install_jdk.sh'
         self.command_install_cassandra = 'sh script_install_cassandra.sh'
         self.keyspace = ''
@@ -110,13 +114,15 @@ class CTkApp:
             self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0, height=500)
             self.list_box.pack(fill=BOTH)
             self.list_box.bind('<Double-1>', self.select_keyspace)
+            self.button_add.configure(command=self.add_keyspace)
+            self.button_add.place(relx=0.9, rely=0)
         except:
             self.lable_cassandra_info.configure(text='Такого хоста не існує')
             self.lable_cassandra_info.pack()
 
     def select_keyspace(self, event):
         self.button_back.configure(command=self.back_to_list_keyspace)
-        self.button_back.place(relx=0.01, rely=0.01)
+        self.button_back.place(relx=0.01, rely=0)
         selection = event.widget.curselection()
         if selection:
             index = selection[0]
@@ -157,18 +163,20 @@ class CTkApp:
         self.lable_cassandra_info.pack()
         keyspaces = self.cassandra_cluster.get_all_keyspace()
         self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0)
-        self.list_box.pack(fill=BOTH)
         self.list_box.bind('<Double-1>', self.select_keyspace)
+        self.list_box.pack(fill=BOTH)
 
     def back_to_list_table(self):
         self.button_back.configure(command=self.back_to_list_keyspace)
         self.button_back.update()
         self.lable_cassandra_info.configure(text='')
-        self.lable_cassandra_info.configure(text=f'Host: {self.entry_host} \n Keyspace: {self.keyspace}')
+        self.lable_cassandra_info.configure(text=f'Host: {self.entry_host.get()} \n Keyspace: {self.keyspace}')
         self.lable_cassandra_info.update()
         self.table_cassandra.pack_forget()
         tables = self.cassandra_cluster.get_all_tables_of_keyspace(self.keyspace)
         self.list_box.configure(listvariable=Variable(value=tables))
         self.list_box.bind('<Double-1>', self.select_table_of_keyspace)
         self.list_box.pack(fill=BOTH)
-        self.list_box.update()
+
+    def add_keyspace(self):
+        print('add')

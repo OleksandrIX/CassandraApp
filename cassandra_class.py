@@ -37,3 +37,6 @@ class Cassandra:
         for i in result:
             info_of_columns.append(list(i))
         return info_of_columns
+
+    def add_keyspace(self, keyspace):
+        self.session.execute(f"create keyspace {keyspace} with replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}")

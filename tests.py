@@ -9,21 +9,22 @@ session = cluster.connect()
 # for i in result:
 #     print(i)
 # session.execute("create table users (name text, age int)")
-session.execute("insert into test.users (name, age) values ('sasha', 19)")
+# session.execute("insert into test.users (name, age) values ('sasha', 19)")
 # res = session.execute("select * from system_schema.columns where keyspace_name = 'test' and table_name = 'users'")
 # arr = []
 # for i in res:
 #     arr.append(i.column_name)
 # arr.reverse()
 # print(arr)
-
-res = session.execute("select * from test.users")
-arr=[]
-for i in res:
-    arr.append(list(i))
-
-for i in range(len(arr)):
-    print(type(arr[i]))
+keyspace = 'sasha'
+session.execute("create keyspace {} with replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}" % keyspace)
+# res = session.execute("select * from test.users")
+# arr=[]
+# for i in res:
+#     arr.append(list(i))
+#
+# for i in range(len(arr)):
+#     print(type(arr[i]))
 #
 # cmd = subprocess.Popen(['echo', 'h6ejtsPW'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 # subprocess.run(['sudo', '-S', 'sh', 'script_install_cassandra.sh'], stdin=cmd.stdin)
