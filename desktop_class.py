@@ -5,6 +5,7 @@ import os
 from threading import Thread
 from cassandra_class import Cassandra
 from tkinter import *
+from window import Window
 
 
 class CTkApp:
@@ -26,6 +27,8 @@ class CTkApp:
         self.button_add = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
             file='/home/pishexod/PycharmProjects/CassandraApp/add.png'), fg_color='#ffffff', hover_color='#ffffff',
                                                   height=15, width=15)
+        self.button_delete = customtkinter.CTkButton(self.app, text='Drop', fg_color='#ffffff', hover_color='#ffffff',
+                                                     height=15, width=15)
 
         self.command_install_jdk = 'sh script_install_jdk.sh'
         self.command_install_cassandra = 'sh script_install_cassandra.sh'
@@ -114,14 +117,20 @@ class CTkApp:
             self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0, height=500)
             self.list_box.pack(fill=BOTH)
             self.list_box.bind('<Double-1>', self.select_keyspace)
-            self.button_add.configure(command=self.add_keyspace)
+            self.button_add.configure(command=self.add_keyspace_window)
             self.button_add.place(relx=0.9, rely=0)
+            self.button_delete.configure(command=self.delete_keyspace)
+            self.button_delete.place(relx=0.8, rely=0)
         except:
             self.lable_cassandra_info.configure(text='Такого хоста не існує')
             self.lable_cassandra_info.pack()
 
     def select_keyspace(self, event):
         self.button_back.configure(command=self.back_to_list_keyspace)
+        self.button_add.configure(command=self.add_table_of_keyspace)
+        self.button_delete.configure(command=self.delete_table_of_keyspace)
+        self.button_delete.update()
+        self.button_add.update()
         self.button_back.place(relx=0.01, rely=0)
         selection = event.widget.curselection()
         if selection:
@@ -136,6 +145,10 @@ class CTkApp:
 
     def select_table_of_keyspace(self, event):
         self.button_back.configure(command=self.back_to_list_table)
+        self.button_add.configure(command=self.add_element_to_table)
+        self.button_delete.configure(command=self.delete_element_to_table)
+        self.button_delete.update()
+        self.button_add.update()
         self.button_back.update()
         selection = event.widget.curselection()
         if selection:
@@ -165,6 +178,8 @@ class CTkApp:
         self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0)
         self.list_box.bind('<Double-1>', self.select_keyspace)
         self.list_box.pack(fill=BOTH)
+        self.button_add.configure(command=self.add_keyspace_window)
+        self.button_add.place(relx=0.9, rely=0)
 
     def back_to_list_table(self):
         self.button_back.configure(command=self.back_to_list_keyspace)
@@ -178,5 +193,46 @@ class CTkApp:
         self.list_box.bind('<Double-1>', self.select_table_of_keyspace)
         self.list_box.pack(fill=BOTH)
 
-    def add_keyspace(self):
+    def add_keyspace_window(self):
+        window = Window(self.app, 200, 90)
+        window.enter_keyspace(self.cassandra_cluster)
+        window.app.wait_window()
+        self.update_list_keyspace()
+
+    def delete_keyspace(self):
+        window = Window(self.app, 300, 180)
+        keyspaces = self.cassandra_cluster.get_all_keyspace()
+        window.cb_delete_keyspace(keyspaces, self.cassandra_cluster)
+        window.app.wait_window()
+        self.update_list_keyspace()
+
+    def update_list_keyspace(self):
+        keyspaces = self.cassandra_cluster.get_all_keyspace()
+        self.list_box.configure(listvariable=Variable(value=keyspaces), borderwidth=0, border=0, height=500)
+        self.list_box.pack(fill=BOTH)
+        self.list_box.bind('<Double-1>', self.select_keyspace)
+
+    def add_table_of_keyspace(self):
+        window = Window(self.app, 400, 300)
+        window.window_add_table(self.keyspace, self.cassandra_cluster)
+        window.app.wait_window()
+        self.update_list_table()
+
+    def delete_table_of_keyspace(self):
+        window = Window(self.app, 300, 180)
+        tables = self.cassandra_cluster.get_all_tables_of_keyspace(self.keyspace)
+        window.cb_delete_table(self.keyspace, tables, self.cassandra_cluster)
+        window.app.wait_window()
+        self.update_list_table()
+
+    def update_list_table(self):
+        tables = self.cassandra_cluster.get_all_tables_of_keyspace(self.keyspace)
+        self.list_box.configure(listvariable=Variable(value=tables))
+        self.list_box.bind('<Double-1>', self.select_table_of_keyspace)
+        self.list_box.pack(fill=BOTH)
+
+    def add_element_to_table(self):
         print('add')
+
+    def delete_element_to_table(self):
+        print('drop')

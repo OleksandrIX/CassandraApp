@@ -39,4 +39,13 @@ class Cassandra:
         return info_of_columns
 
     def add_keyspace(self, keyspace):
-        self.session.execute(f"create keyspace {keyspace} with replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}")
+        self.session.execute("create keyspace " + keyspace + " with replication = {'class': 'SimpleStrategy', 'replication_factor' : 1}")
+
+    def drop_keyspace(self, keyspace):
+        self.session.execute(f"drop keyspace {keyspace}")
+
+    def add_table_in_keyspace(self, keyspace, table, key_values, pk):
+        self.session.execute(f"create table {keyspace}.{table} ({key_values}PRIMARY KEY({pk}))")
+
+    def drop_table_in_keyspace(self, keyspace, table):
+        self.session.execute(f"drop table {keyspace}.{table}")

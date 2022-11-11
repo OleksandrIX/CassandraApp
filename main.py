@@ -1,4 +1,3 @@
-import customtkinter
 from desktop_class import CTkApp
 
 app = CTkApp('CassandraApp')
