@@ -145,8 +145,8 @@ class CTkApp:
 
     def select_table_of_keyspace(self, event):
         self.button_back.configure(command=self.back_to_list_table)
-        self.button_add.configure(command=self.add_element_to_table)
-        self.button_delete.configure(command=self.delete_element_to_table)
+        self.button_add.configure(command=self.add_row_to_table)
+        self.button_delete.configure(command=self.delete_row_to_table)
         self.button_delete.update()
         self.button_add.update()
         self.button_back.update()
@@ -161,11 +161,16 @@ class CTkApp:
 
     def draw_table(self):
         self.table_cassandra.delete(*self.table_cassandra.get_children())
-        columns = self.cassandra_cluster.get_all_column_of_table(self.keyspace, self.table)
+        columns = list(self.cassandra_cluster.get_all_column_of_table(self.keyspace, self.table))
+        pk_name = self.cassandra_cluster.get_pk_of_table(self.keyspace, self.table)
         self.table_cassandra.configure(columns=columns, show='headings', height=500)
         for i in range(len(columns)):
-            self.table_cassandra.heading(columns[i], text=columns[i])
+            if pk_name == columns[i]:
+                self.table_cassandra.heading(columns[i], text=f'{columns[i]} (pk)')
+            else:
+                self.table_cassandra.heading(columns[i], text=columns[i])
         info_of_columns = self.cassandra_cluster.get_info_of_column(self.keyspace, self.table)
+        print(info_of_columns)
         for i in range(len(info_of_columns)):
             self.table_cassandra.insert('', tkinter.END, values=info_of_columns[i])
         self.table_cassandra.pack(fill=BOTH)
@@ -194,13 +199,13 @@ class CTkApp:
         self.list_box.pack(fill=BOTH)
 
     def add_keyspace_window(self):
-        window = Window(self.app, 200, 90)
+        window = Window(self.app, 200, 90, 'Add Keyspace')
         window.enter_keyspace(self.cassandra_cluster)
         window.app.wait_window()
         self.update_list_keyspace()
 
     def delete_keyspace(self):
-        window = Window(self.app, 300, 180)
+        window = Window(self.app, 300, 130, 'Delete Keyspace')
         keyspaces = self.cassandra_cluster.get_all_keyspace()
         window.cb_delete_keyspace(keyspaces, self.cassandra_cluster)
         window.app.wait_window()
@@ -213,13 +218,13 @@ class CTkApp:
         self.list_box.bind('<Double-1>', self.select_keyspace)
 
     def add_table_of_keyspace(self):
-        window = Window(self.app, 400, 300)
+        window = Window(self.app, 400, 300, 'Add Table')
         window.window_add_table(self.keyspace, self.cassandra_cluster)
         window.app.wait_window()
         self.update_list_table()
 
     def delete_table_of_keyspace(self):
-        window = Window(self.app, 300, 180)
+        window = Window(self.app, 300, 130, 'Delete Table')
         tables = self.cassandra_cluster.get_all_tables_of_keyspace(self.keyspace)
         window.cb_delete_table(self.keyspace, tables, self.cassandra_cluster)
         window.app.wait_window()
@@ -231,8 +236,18 @@ class CTkApp:
         self.list_box.bind('<Double-1>', self.select_table_of_keyspace)
         self.list_box.pack(fill=BOTH)
 
-    def add_element_to_table(self):
-        print('add')
+    def add_row_to_table(self):
+        window = Window(self.app, 400, 300, 'Add Row')
+        window.window_add_row(self.keyspace, self.table, self.cassandra_cluster)
+        window.app.wait_window()
+        self.table_cassandra.delete()
+        self.draw_table()
 
-    def delete_element_to_table(self):
-        print('drop')
+    def delete_row_to_table(self):
+        window = Window(self.app, 300, 130, 'Delete Row')
+        pk_key = self.cassandra_cluster.get_pk_of_table(self.keyspace, self.table)
+        pk_values = self.cassandra_cluster.get_all_pk_value(self.keyspace, self.table, pk_key)
+        window.cb_delete_row(self.keyspace, self.table, pk_key, pk_values, self.cassandra_cluster)
+        window.app.wait_window()
+        self.table_cassandra.delete()
+        self.draw_table()
