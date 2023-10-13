@@ -22,10 +22,10 @@ class CTkApp:
         self.list_box = Listbox(self.app)
         self.table_cassandra = Treeview(self.app)
         self.button_back = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
-            file='/home/pishexod/PycharmProjects/CassandraApp/back.png'), fg_color='#ffffff', hover_color='#ffffff',
+            file=os.path.join(os.getcwd(), "img", "back.png")), fg_color='#ffffff', hover_color='#ffffff',
                                                    height=15, width=15)
         self.button_add = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
-            file='/home/pishexod/PycharmProjects/CassandraApp/add.png'), fg_color='#ffffff', hover_color='#ffffff',
+            file=os.path.join(os.getcwd(), "img", "add.png")), fg_color='#ffffff', hover_color='#ffffff',
                                                   height=15, width=15)
         self.button_delete = customtkinter.CTkButton(self.app, text='Drop', fg_color='#ffffff', hover_color='#ffffff',
                                                      height=15, width=15)

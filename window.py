@@ -1,6 +1,6 @@
 import customtkinter
 from tkinter import *
-
+import os
 
 class Window:
     def __init__(self, parent, width, height, name):
@@ -16,7 +16,7 @@ class Window:
         self.widgets_to_add_table = []
         self.widgets_to_add_row = []
         self.button_add = customtkinter.CTkButton(self.app, text='', image=PhotoImage(
-            file='/home/pishexod/PycharmProjects/CassandraApp/add.png'), fg_color='#ffffff', hover_color='#ffffff',
+            file=os.path.join(os.getcwd(), "img", "add.png")), fg_color='#ffffff', hover_color='#ffffff',
                                                   height=15, width=15)
         self.keyspace = ''
         self.table = ''
